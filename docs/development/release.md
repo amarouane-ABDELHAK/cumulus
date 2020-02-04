@@ -12,11 +12,14 @@ Read more about the semantic versioning [here](https://docs.npmjs.com/getting-st
 
 #### From Master
 
-If creating a new minor version release from master, create a branch titled `release-MAJOR.MINOR.x` (e.g. release-1.14.x) as a minor version branch from master to allow us to easily backport patches to that version.  Then create a release branch from the minor version branch.
+If creating a new minor version release from master, create a branch titled `release-MAJOR.MINOR.x` (e.g. release-1.14.x) as a minor version base branch from master to allow us to easily backport patches to that version.
+
+Push the `release-MAJOR.MINOR.x` branch to GitHub. (Commits should be even with master at this point.)
+Then create the release branch (e.g. release-1.14.0) from the minor version branch.
 
 #### Backporting
 
-Checkout the minor version branch created in the `From Master` step above, then create a release branch from it.
+Checkout the existing minor version branch created previously in the `From Master` step above, then create a release branch from it.
 
 ### 2. Update the Cumulus version number
 
@@ -63,7 +66,9 @@ Note: This is for 1.10.3 or later.
 
 ### 6. Create a pull request against the minor version branch
 
-Create a PR against the minor version branch. Verify that the Bamboo build for the PR succeeds and then merge to the minor version branch.
+Push the release branch to GitHub.
+Create a PR against the minor version base branch. Verify that the Bamboo build for the PR succeeds and then merge to the minor version base branch.
+Do not delete your release branch after merging.
 
 ### 7. Create a git tag for the release
 
@@ -84,17 +89,21 @@ If you created a new release plan in step one, you will need to create a new bam
 
 * In the Cumulus Core project (<https://ci.earthdata.nasa.gov/browse/CUM-CBA>), click Actions -> Configure Plan
 
-* Scroll to the bottom of the branch list and click `Create Plan Branch`
+* Scroll to the bottom of the branch list and click `Create Plan Branch`.
 
-* Click `Create plan branch manually`
+* Click `Create plan branch manually`.
 
-* Add the values in that list.   Choose a display name that makes it *very* clear this is a deployment branch plan.    `Release (branch name)` seems to work well.    *Make sure* you select the correct branch
+* Add the values in that list. Choose a display name that makes it *very* clear this is a deployment branch plan. `Release (branch name)` seems to work well. *Make sure* you select the correct branch
 
-* **Important** Deselect Enable Branch - if you do not do this, it will immediately fire off a build
+* **Important** Deselect Enable Branch - if you do not do this, it will immediately fire off a build.
 
-* **Immediately** go to plan configuration on the `Branch Details` tab, and enable `Change trigger`.  Set the `Trigger type` to manual, this will prevent commits to the branch from triggering the build plan
+* **Immediately** go to plan configuration on the `Branch Details` tab, and enable `Change trigger`.  Set the `Trigger type` to manual, this will prevent commits to the branch from triggering the build plan.
 
-* Go to the branch plan and set GIT_PR, USE_NPM_PACKAGES, SKIP_AUDIT and PUBLISH_FLAG to true.  Select a DEPLOYMENT appropriate for the release (defaults to last committer). This should be `cumulus-from-npm` *except* in special cases such as incompatible backport branches.
+* Go to the branch plan and set GIT_PR, USE_NPM_PACKAGES, SKIP_AUDIT and PUBLISH_FLAG to true.  Select a DEPLOYMENT appropriate for the release (defaults to last committer). This should be `cumulus-from-npm-tf` *except* in special cases such as incompatible backport branches.
+
+* Enable the branch from the `Branch Details` page.
+
+* Run the branch using the `Run` button in the top right.
 
 Bamboo will build and run lint, audit and unit tests against that tagged release, publish the new packages to NPM, and then run the integration tests using those newly released packages.
 
