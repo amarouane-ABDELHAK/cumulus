@@ -87,19 +87,21 @@ If you created a new release plan in step one, you will need to create a new bam
 
 #### Creating a Bamboo Deployment plan
 
-* In the Cumulus Core project (<https://ci.earthdata.nasa.gov/browse/CUM-CBA>), click Actions -> Configure Plan
+* In the Cumulus Core project (<https://ci.earthdata.nasa.gov/browse/CUM-CBA>), click `Actions -> Configure Plan` in the top right.
 
-* Scroll to the bottom of the branch list and click `Create Plan Branch`.
+* Scroll to the bottom of the branch list in the bottom left and click `Create Plan Branch`.
 
 * Click `Create plan branch manually`.
 
-* Add the values in that list. Choose a display name that makes it *very* clear this is a deployment branch plan. `Release (branch name)` seems to work well. *Make sure* you select the correct branch
+* Add the values in that list. Choose a display name that makes it *very* clear this is a deployment branch plan. `Release (branch name)` seems to work well. *Make sure* you enter the correct branch name.
 
 * **Important** Deselect Enable Branch - if you do not do this, it will immediately fire off a build.
 
-* **Immediately** go to plan configuration on the `Branch Details` tab, and enable `Change trigger`.  Set the `Trigger type` to manual, this will prevent commits to the branch from triggering the build plan.
+* **Do Immediately** On the `Branch Details` page, enable `Change trigger`.  Set the `Trigger type` to manual, this will prevent commits to the branch from triggering the build plan.
+You should have been redirected to the `Branch Details` tab after creating the plan. If not, navigate to the branch from the list where you clicked `Create Plan Branch` in the previous step.
 
-* Go to the branch plan and set GIT_PR, USE_NPM_PACKAGES, SKIP_AUDIT and PUBLISH_FLAG to true.  Select a DEPLOYMENT appropriate for the release (defaults to last committer). This should be `cumulus-from-npm-tf` *except* in special cases such as incompatible backport branches.
+* Go to the `Variables` tab and set GIT_PR, USE_NPM_PACKAGES, SKIP_AUDIT and PUBLISH_FLAG to true. Ensure that you are on your branch plan and not the `master` plan: You should not see a large list of configured variables, but instead a dropdown allowing you to select variables to override, and the tab title will be `Branch Variables`.
+Set a DEPLOYMENT variable appropriate for the release (defaults to last committer). This should be `cumulus-from-npm-tf` *except* in special cases such as incompatible backport branches.
 
 * Enable the branch from the `Branch Details` page.
 
