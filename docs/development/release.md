@@ -19,7 +19,8 @@ Then create the release branch (e.g. release-1.14.0) from the minor version bran
 
 #### Backporting
 
-Checkout the existing minor version branch created previously in the `From Master` step above, then create a release branch from it.
+When creating a backport, a minor version base branch should already exist on GitHub.
+Checkout the existing minor version base branch then create a release branch from it.
 
 ### 2. Update the Cumulus version number
 
@@ -67,10 +68,14 @@ Note: This is for 1.10.3 or later.
 ### 6. Create a pull request against the minor version branch
 
 Push the release branch to GitHub.
-Create a PR against the minor version base branch. Verify that the Bamboo build for the PR succeeds and then merge to the minor version base branch.
-Do not delete your release branch after merging.
+Create a PR against the minor version base branch.
+Verify that the Bamboo build for the PR succeeds and then merge to the minor version base branch.
+You may delete your release branch after merging to the base branch.
 
 ### 7. Create a git tag for the release
+
+Check out the minor version base branch now that your changes are merged in.
+Ensure you are on the latest commit.
 
 Create and push a new git tag:
 
@@ -120,6 +125,15 @@ The CI release scripts will automatically create a release based on the release 
 * An ECS service module
 
 Just make sure to verify the appropriate .zip files are present on Github after the release process is complete.
+
+### 10. Merge base branch back to master
+
+Finally, you need to reproduce the version update changes back to master.
+
+If this is the latest version, you can simply create a PR to merge the minor version base branch back to master.
+
+If this is a backport, you will need to create a PR that ports versioned docs from step 5 and the changelog updates back to master.
+You will need to ensure that the backport's versioned docs do not end up as the default [published documentation](https://nasa.github.io/cumulus), but that the default remains the most highly-numbered version released (e.g. we do not want 1.14.5 to show up by default instead of 1.17.0.)
 
 ## Troubleshooting
 
