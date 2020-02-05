@@ -58,6 +58,8 @@ Add a link reference for the github "compare" view at the bottom of the CHANGELO
 
 ### 5. Cut new version of Cumulus Documentation
 
+If this is a backport, do not version documentation. For various reasons, we do not merge backports back to master, other than changelog notes. Doc changes will not be published to our documentation website.
+
 ```shell
 cd website
 npm run version ${release_version}
@@ -108,7 +110,7 @@ If you created a new release plan in step one, you will need to create a new bam
 * **Do Immediately** On the `Branch Details` page, enable `Change trigger`.  Set the `Trigger type` to manual, this will prevent commits to the branch from triggering the build plan.
 You should have been redirected to the `Branch Details` tab after creating the plan. If not, navigate to the branch from the list where you clicked `Create Plan Branch` in the previous step.
 
-* Go to the `Variables` tab and set GIT_PR, USE_NPM_PACKAGES, SKIP_AUDIT and PUBLISH_FLAG to true. Ensure that you are on your branch plan and not the `master` plan: You should not see a large list of configured variables, but instead a dropdown allowing you to select variables to override, and the tab title will be `Branch Variables`.
+* Go to the `Variables` tab and set GIT_PR, USE_TERRAFORM_ZIPS, SKIP_AUDIT and PUBLISH_FLAG to true. Ensure that you are on your branch plan and not the `master` plan: You should not see a large list of configured variables, but instead a dropdown allowing you to select variables to override, and the tab title will be `Branch Variables`.
 Set a DEPLOYMENT variable appropriate for the release (defaults to last committer). This should be `cumulus-from-npm-tf` *except* in special cases such as incompatible backport branches.
 
 * Enable the branch from the `Branch Details` page.
@@ -135,8 +137,9 @@ Finally, you need to reproduce the version update changes back to master.
 
 If this is the latest version, you can simply create a PR to merge the minor version base branch back to master.
 
-If this is a backport, you will need to create a PR that ports versioned docs from step 5 and the changelog updates back to master.
-You will need to ensure that the backport's versioned docs do not end up as the default [published documentation](https://nasa.github.io/cumulus), but that the default remains the most highly-numbered version released (e.g. we do not want 1.14.5 to show up by default instead of 1.17.0.)
+If this is a backport, you will need to create a PR that ports the changelog updates back to master.
+It is important in this changelog note to call it out as a backport.
+For example, fixes in backport version 1.14.5 may not be available in 1.15.0 because the fix was introduced in 1.15.3.
 
 ## Troubleshooting
 
