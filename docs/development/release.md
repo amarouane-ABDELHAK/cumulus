@@ -38,6 +38,9 @@ To update Cumulus's version number run:
 
 Lerna will handle updating the packages and all of the dependent package version numbers. If a dependency has not been changed with the update, however, lerna will not update the version of the dependency.
 
+**Note:** Lerna will struggle to correctly update the versions on any non-standard/alpha versions (e.g. 1.17.0-alpha0).
+Please be sure to check any packages that are new or have been manually published since the previous release and any packages that list it as a dependency to ensure the listed versions are correct.
+
 ### 3. Check Cumulus Dashboard PRs for Version Bump
 
 There may be unreleased changes in the Cumulus Dashboard [project](https://github.com/nasa/cumulus-dashboard) that rely on this unreleased Cumulus Core version.
