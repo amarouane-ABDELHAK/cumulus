@@ -5,6 +5,7 @@ const get = require('lodash.get');
 const StepFunctions = require('@cumulus/aws-client/StepFunctions');
 const log = require('@cumulus/common/log');
 const { getCollectionIdFromMessage, getMessageExecutionArn } = require('@cumulus/common/message');
+const { deprecate } = require('@cumulus/common/util');
 const pvl = require('@cumulus/pvl');
 
 const Manager = require('./base');
@@ -54,7 +55,7 @@ class Pdr extends Manager {
    * @returns {Object|null} - A PDR record, or null if `message.payload.pdr` is
    *   not set
    */
-  static generatePdrRecord(message) {
+  generatePdrRecord(message) {
     const pdr = get(message, 'payload.pdr');
 
     if (!pdr) { // We got a message with no PDR (OK)
@@ -100,6 +101,7 @@ class Pdr extends Manager {
     };
 
     record.duration = (record.timestamp - record.createdAt) / 1000;
+    this.constructor.recordIsValid(record, this.schema);
     return record;
   }
 
@@ -110,14 +112,60 @@ class Pdr extends Manager {
    * @returns {Promise<Object>} a PDR record
    */
   createPdrFromSns(payload) {
+    deprecate('@cumulus/api/models/Pdr.createPdrFromSns', 'v1.18.0');
     const pdrObj = get(payload, 'payload.pdr', get(payload, 'meta.pdr'));
     const pdrName = get(pdrObj, 'name');
 
     if (!pdrName) return Promise.resolve();
 
-    const pdrRecord = Pdr.generatePdrRecord(payload);
+    const pdrRecord = this.generatePdrRecord(payload);
 
     return this.create(pdrRecord);
+  }
+
+  /**
+   * Try to update a PDR record from a cloudwatch event.
+   * If the record already exists, only update if the execution is different (re-run case).
+   *
+   * @param {Object} cumulusMessage - cumulus message object
+   */
+  async upsertFromCloudwatchEvent(cumulusMessage) {
+    const pdrRecord = this.generatePdrRecord(cumulusMessage);
+    if (!pdrRecord) return null;
+    const updateParams = await this.generatePdrUpsertParamsFromRecord(pdrRecord);
+    if (pdrRecord.status === 'running') {
+      updateParams.ConditionExpression = 'execution <> :execution';
+      try {
+        return await this.dynamodbDocClient.update(updateParams).promise();
+      } catch (err) {
+        const executionArn = getMessageExecutionArn(cumulusMessage);
+        log.info(`Did not process delayed 'running' event for ${executionArn}`);
+        return null;
+      }
+    }
+    return this.dynamodbDocClient.update(updateParams).promise();
+  }
+
+  /**
+   * Update a PDR record from a cumulusMessage.
+   *
+   * @param {Object} cumulusMessage - cumulus message
+   */
+  async upsertFromCumulusMessage(cumulusMessage) {
+    const pdrRecord = this.generatePdrRecord(cumulusMessage);
+    if (!pdrRecord) return null;
+    const updateParams = await this.generatePdrUpsertParamsFromRecord(pdrRecord);
+    return this.dynamodbDocClient.update(updateParams).promise();
+  }
+
+  async generatePdrUpsertParamsFromRecord(pdrRecord) {
+    const mutableFieldNames = Object.keys(pdrRecord);
+    const updateParams = this._buildDocClientUpdateParams({
+      item: pdrRecord,
+      itemKey: { pdrName: pdrRecord.pdrName },
+      mutableFieldNames
+    });
+    return updateParams;
   }
 
   /**
