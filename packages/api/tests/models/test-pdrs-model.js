@@ -205,15 +205,15 @@ test('generatePdrRecord() sets PDR properties when included', async (t) => {
   t.is(record.PANmessage, PANmessage);
 });
 
-test('upsertFromCloudWatchEvent returns null if there is no pdr on the message', async (t) => {
+test('updateFromCloudWatchEvent returns null if there is no pdr on the message', async (t) => {
   const msg = createPdrMessage({});
 
-  const output = await pdrsModel.upsertFromCloudwatchEvent(msg);
+  const output = await pdrsModel.updateFromCloudwatchEvent(msg);
   t.is(output, null);
 });
 
 test(
-  'upsertFromCloudwatchEvent updates the database if status is running and the execution is different',
+  'updateFromCloudwatchEvent updates the database if status is running and the execution is different',
   async (t) => {
     const pdrName = randomId('pdr');
     const stateMachine = randomId('parsePdr');
@@ -227,7 +227,7 @@ test(
       name: pdrName
     };
 
-    await pdrsModel.upsertFromCloudwatchEvent(initialMsg);
+    await pdrsModel.updateFromCloudwatchEvent(initialMsg);
     t.true(
       (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
     );
@@ -243,7 +243,7 @@ test(
       name: pdrName
     };
 
-    await pdrsModel.upsertFromCloudwatchEvent(newMsg);
+    await pdrsModel.updateFromCloudwatchEvent(newMsg);
 
     const record = await pdrsModel.get({ pdrName });
     t.is(record.status, 'running');
@@ -252,7 +252,7 @@ test(
 );
 
 test(
-  'upsertFromCloudwatchEvent does not update if execution is the same and status is running',
+  'updateFromCloudwatchEvent does not update if execution is the same and status is running',
   async (t) => {
     const pdrName = randomId('pdr');
     const stateMachine = randomId('parsePdr');
@@ -268,7 +268,7 @@ test(
       name: pdrName
     };
 
-    await pdrsModel.upsertFromCloudwatchEvent(initialMsg);
+    await pdrsModel.updateFromCloudwatchEvent(initialMsg);
     t.true(
       (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
     );
@@ -283,21 +283,21 @@ test(
       name: pdrName
     };
 
-    await pdrsModel.upsertFromCloudwatchEvent(newMsg);
+    await pdrsModel.updateFromCloudwatchEvent(newMsg);
 
     const record = await pdrsModel.get({ pdrName });
     t.is(record.status, 'completed');
   }
 );
 
-test('upsertFromCumulusMessage returns null if there is no pdr on the message', async (t) => {
+test('updateFromCumulusMessage returns null if there is no pdr on the message', async (t) => {
   const msg = createPdrMessage({});
 
-  const output = await pdrsModel.upsertFromCumulusMessage(msg);
+  const output = await pdrsModel.updateFromCumulusMessage(msg);
   t.is(output, null);
 });
 
-test('upsertFromCumulusMessage overwrites a running status', async (t) => {
+test('updateFromCumulusMessage overwrites a running status', async (t) => {
   const pdrName = randomId('pdr');
   const stateMachine = randomId('parsePdr');
   const execution = randomId('exec');
@@ -313,7 +313,7 @@ test('upsertFromCumulusMessage overwrites a running status', async (t) => {
     name: pdrName
   };
 
-  await pdrsModel.upsertFromCumulusMessage(initialMsg);
+  await pdrsModel.updateFromCumulusMessage(initialMsg);
   t.true(
     (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
   );
@@ -329,14 +329,14 @@ test('upsertFromCumulusMessage overwrites a running status', async (t) => {
     name: pdrName
   };
 
-  await pdrsModel.upsertFromCumulusMessage(newMsg);
+  await pdrsModel.updateFromCumulusMessage(newMsg);
 
   const record = await pdrsModel.get({ pdrName });
   t.is(record.stats.processing, 0);
   t.is(record.stats.completed, 5);
 });
 
-test('upsertFromCumulusMessage overwrites a completed status', async (t) => {
+test('updateFromCumulusMessage overwrites a completed status', async (t) => {
   const pdrName = randomId('pdr');
   const stateMachine = randomId('parsePdr');
   const execution = randomId('exec');
@@ -352,7 +352,7 @@ test('upsertFromCumulusMessage overwrites a completed status', async (t) => {
     name: pdrName
   };
 
-  await pdrsModel.upsertFromCumulusMessage(initialMsg);
+  await pdrsModel.updateFromCumulusMessage(initialMsg);
   t.true(
     (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
   );
@@ -368,7 +368,7 @@ test('upsertFromCumulusMessage overwrites a completed status', async (t) => {
     name: pdrName
   };
 
-  await pdrsModel.upsertFromCumulusMessage(newMsg);
+  await pdrsModel.updateFromCumulusMessage(newMsg);
 
   const record = await pdrsModel.get({ pdrName });
   t.is(record.status, 'running');

@@ -18,7 +18,7 @@ const saveExecutionToDb = async (cumulusMessage) => {
 const savePdrToDb = async (cumulusMessage) => {
   const pdrModel = new Pdr();
   try {
-    await pdrModel.upsertFromCloudwatchEvent(cumulusMessage);
+    await pdrModel.updateFromCloudwatchEvent(cumulusMessage);
   } catch (err) {
     const executionArn = getMessageExecutionArn(cumulusMessage);
     log.fatal(`Failed to create/update PDR database record for execution ${executionArn}: ${err.message}`);
