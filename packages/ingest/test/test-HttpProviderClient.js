@@ -58,6 +58,22 @@ test('sync() downloads remote file to s3 with correct content-type', async (t) =
   }
 });
 
+test.serial('list() returns no files', async (t) => {
+  const responseBody = '<html><body></body></html>';
+
+  const actualFiles = await testListWith(
+    t.context.httpProviderClient,
+    'fetchcomplete',
+    {},
+    Buffer.from(responseBody),
+    {}
+  );
+
+  const expectedFiles = [];
+
+  t.deepEqual(actualFiles, expectedFiles);
+});
+
 test.serial('list() returns expected files', async (t) => {
   const responseBody = '<html><body><a href="file.txt">asdf</a></body></html>';
 
@@ -133,27 +149,6 @@ test.serial('list() returns all files for provider from multiple source lines', 
     { name: 'test.txt', path: '' },
     { name: 'test2.txt', path: '' }
   ];
-
-  t.deepEqual(actualFiles, expectedFiles);
-});
-
-test.serial('list() excludes files for provider with non-valid file extension', async (t) => {
-  const responseBody = `
-  <html><body>
-  <A HREF="/parent/dir/">[To Parent Directory]</A>
-  <A HREF="test.txt">test.txt</A>
-  </body></html>
-  `;
-
-  const actualFiles = await testListWith(
-    t.context.httpProviderClient,
-    'fetchcomplete',
-    {},
-    Buffer.from(responseBody),
-    {}
-  );
-
-  const expectedFiles = [{ name: 'test.txt', path: '' }];
 
   t.deepEqual(actualFiles, expectedFiles);
 });
