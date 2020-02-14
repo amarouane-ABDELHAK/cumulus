@@ -38,6 +38,8 @@
     "lodash.get": "^4.4.2"
   },
   "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
     "@cumulus/aws-client": "1.18.0",
     "@cumulus/common": "1.18.0",
     "ava": "^2.1.0",

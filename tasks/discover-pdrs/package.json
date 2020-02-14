@@ -44,6 +44,8 @@
     "p-filter": "^2.1.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
     "@cumulus/common": "1.18.0",
     "@cumulus/errors": "1.18.0",
     "ava": "^2.1.0",
