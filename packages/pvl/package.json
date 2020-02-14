@@ -1,44 +1,40 @@
 {
-  "name": "@cumulus/pvl",
-  "version": "1.18.0",
-  "description": "Parse and serialize Parameter Value Language, a data markup language used by NASA",
-  "main": "index.js",
-  "engine": {
-    "node": ">=10.16.3"
-  },
-  "scripts": {
-    "test": "ava",
-    "test-coverage": "nyc ava"
-  },
-  "ava": {
-    "serial": true
-  },
-  "nyc": {
-    "exclude": [
-      "test"
-    ]
-  },
-  "publishConfig": {
-    "access": "public"
-  },
-  "keywords": [
-    "odl",
-    "pvl",
-    "parameter value language",
-    "object description language"
-  ],
-  "homepage": "https://github.com/nasa/cumulus/tree/master/packages/pvl",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/nasa/cumulus"
-  },
-  "author": "Cumulus Authors",
-  "license": "Apache-2.0",
-  "dependencies": {
-    "lodash.isstring": "^4.0.1"
-  },
-  "devDependencies": {
-    "ava": "^2.1.0",
-    "nyc": "^14.0.0"
-  }
+	"name": "@cumulus/pvl",
+	"version": "1.18.0",
+	"description": "Parse and serialize Parameter Value Language, a data markup language used by NASA",
+	"main": "index.js",
+	"engine": {
+		"node": ">=10.16.3"
+	},
+	"ava": {
+		"serial": true
+	},
+	"nyc": {
+		"exclude": [
+			"test"
+		]
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [
+		"odl",
+		"pvl",
+		"parameter value language",
+		"object description language"
+	],
+	"homepage": "https://github.com/nasa/cumulus/tree/master/packages/pvl",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/nasa/cumulus"
+	},
+	"author": "Cumulus Authors",
+	"license": "Apache-2.0",
+	"dependencies": {
+		"lodash.isstring": "^4.0.1"
+	},
+	"devDependencies": {
+		"ava": "^2.1.0",
+		"nyc": "^14.0.0"
+	}
 }
