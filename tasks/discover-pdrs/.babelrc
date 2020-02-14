@@ -1,13 +1,7 @@
 {
   "comments": false,
   "sourceMaps": "both",
-  "presets": [
-    ["@babel/preset-env", {
-      "targets": {
-        "node": "10.16.3"
-      }
-    }]
-  ],
+  "presets": ["@babel/preset-env"],
   "plugins": [
     "source-map-support"
   ]
