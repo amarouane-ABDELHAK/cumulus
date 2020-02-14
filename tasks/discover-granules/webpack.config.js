@@ -17,6 +17,7 @@ module.exports = {
   externals: [
     'aws-sdk',
     'electron',
+    'canvas',
     {'formidable': 'url'}
   ],
   module: {
