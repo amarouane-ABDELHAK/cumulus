@@ -6,6 +6,7 @@ const { basename } = require('path');
 const { PassThrough } = require('stream');
 const Crawler = require('simplecrawler');
 const got = require('got');
+const { JSDOM } = require('jsdom');
 
 const { buildS3Uri, promiseS3Upload } = require('@cumulus/aws-client/S3');
 const log = require('@cumulus/common/log');
@@ -42,15 +43,7 @@ class HttpProviderClient {
   list(path) {
     validateHost(this.host);
 
-    // Make pattern case-insensitive and return all matches
-    // instead of just first one
-    const matchLinksPattern = /<a href="([^>]*)">[^<]+<\/a>/ig;
     const matchLeadingSlashesPattern = /^\/+/;
-
-    // Some providers provide files with one number after the dot (".")
-    // (e.g. tmtdayacz8110_5.6)
-    // TODO: Why are we assuming a file extension between 1 and 4 characters long?
-    const matchAcceptedFilesPattern = /^(.*\.[\w\d]{1,4})\s*$/;
 
     const c = new Crawler(
       buildURL({
@@ -67,27 +60,19 @@ class HttpProviderClient {
     c.respectRobotsTxt = false;
     c.userAgent = 'Cumulus';
     c.maxDepth = 1;
-    const files = [];
 
     return new Promise((resolve, reject) => {
       c.on('fetchcomplete', (_, responseBuffer) => {
-        const lines = responseBuffer.toString().trim().split('\n');
-        lines.forEach((line) => {
-          const trimmedLine = line.trim();
-          let match = matchLinksPattern.exec(trimmedLine);
-
-          while (match != null) {
-            const linkTarget = match[1];
-            if (linkTarget.match(matchAcceptedFilesPattern) !== null) {
-              // Remove the path and leading slashes from the filename.
-              const name = linkTarget
-                .replace(path, '')
-                .replace(matchLeadingSlashesPattern, '')
-                .trimRight();
-              files.push({ name, path });
-            }
-            match = matchLinksPattern.exec(trimmedLine);
-          }
+        const responseBody = responseBuffer.toString().trim();
+        const dom = new JSDOM(responseBody);
+        const links = dom.window.document.querySelectorAll('a');
+        const files = Array.from(links).map((link) => {
+          // Remove the path and leading slashes from the filename.
+          const filename = link.getAttribute('href')
+            .replace(path, '')
+            .replace(matchLeadingSlashesPattern, '')
+            .trimRight();
+          return { name: filename, path };
         });
 
         return resolve(files);
