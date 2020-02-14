@@ -79,6 +79,7 @@ const localStackPorts = {
   firehose: 4573,
   iam: 4593,
   kinesis: 4568,
+  kms: 4599,
   lambda: 4574,
   redshift: 4577,
   route53: 4580,
@@ -135,12 +136,13 @@ function localStackAwsClient(Service, options) {
 
   const serviceIdentifier = Service.serviceIdentifier;
 
-  const localStackOptions = Object.assign({}, options, {
+  const localStackOptions = {
+    ...options,
     accessKeyId: 'my-access-key-id',
     secretAccessKey: 'my-secret-access-key',
     region: 'us-east-1',
     endpoint: getLocalstackEndpoint(serviceIdentifier)
-  });
+  };
 
   if (serviceIdentifier === 's3') localStackOptions.s3ForcePathStyle = true;
 

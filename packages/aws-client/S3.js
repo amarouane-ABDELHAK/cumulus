@@ -271,9 +271,26 @@ exports.getS3Object = improveStackTrace(
     )
 );
 
-exports.getJsonS3Object = (bucket, key) =>
+/**
+ * Fetch the contents of an S3 object
+ *
+ * @param {string} bucket - the S3 object's bucket
+ * @param {string} key - the S3 object's key
+ * @returns {Promise<string>} the contents of the S3 object
+ */
+exports.getTextObject = (bucket, key) =>
   exports.getS3Object(bucket, key)
-    .then(({ Body }) => JSON.parse(Body.toString()));
+    .then(({ Body }) => Body.toString());
+
+/**
+ * Fetch JSON stored in an S3 object
+ * @param {string} bucket - the S3 object's bucket
+ * @param {string} key - the S3 object's key
+ * @returns {Promise<*>} the contents of the S3 object, parsed as JSON
+ */
+exports.getJsonS3Object = (bucket, key) =>
+  exports.getTextObject(bucket, key)
+    .then(JSON.parse);
 
 exports.putJsonS3Object = (bucket, key, data) =>
   exports.s3PutObject({
@@ -392,7 +409,9 @@ exports.uploadS3Files = (files, defaultBucket, keyPath, s3opts = {}) => {
     const filename = fileInfo.filename;
     const key = fileInfo.key;
     const body = fs.createReadStream(filename);
-    const opts = Object.assign({ Bucket: bucket, Key: key, Body: body }, s3opts);
+    const opts = {
+      Bucket: bucket, Key: key, Body: body, ...s3opts
+    };
     return exports.promiseS3Upload(opts)
       .then(() => {
         i += 1;
@@ -414,7 +433,9 @@ exports.uploadS3Files = (files, defaultBucket, keyPath, s3opts = {}) => {
  * @returns {Promise} A promise
  */
 exports.uploadS3FileStream = (fileStream, bucket, key, s3opts = {}) => {
-  const opts = Object.assign({ Bucket: bucket, Key: key, Body: fileStream }, s3opts);
+  const opts = {
+    Bucket: bucket, Key: key, Body: fileStream, ...s3opts
+  };
   return exports.promiseS3Upload(opts);
 };
 
@@ -472,11 +493,11 @@ async function listS3ObjectsV2(params) {
   while (listObjectsResponse.IsTruncated) {
     listObjectsResponse = await awsServices.s3().listObjectsV2( // eslint-disable-line no-await-in-loop, max-len
       // Update the params with a Continuation Token
-      Object.assign(
-        {},
-        params,
-        { ContinuationToken: listObjectsResponse.NextContinuationToken }
-      )
+      {
+
+        ...params,
+        ContinuationToken: listObjectsResponse.NextContinuationToken
+      }
     ).promise();
     discoveredObjects = discoveredObjects.concat(listObjectsResponse.Contents);
   }

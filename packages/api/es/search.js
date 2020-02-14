@@ -67,19 +67,47 @@ const esProdConfig = async (host) => {
   };
 };
 
-const esConfig = (host) => (inTestMode() ? esTestConfig() : esProdConfig(host));
-
-class BaseSearch {
-  static async es(host) {
-    return new elasticsearch.Client(await esConfig(host));
+const esMetricsConfig = () => {
+  if (!process.env.METRICS_ES_HOST
+    || !process.env.METRICS_ES_USER
+    || !process.env.METRICS_ES_PASS) {
+    throw new Error('ELK Metrics stack not configured');
   }
 
-  constructor(event, type = null, index) {
+  const node = `https://${process.env.METRICS_ES_USER}:${
+    process.env.METRICS_ES_PASS}@${process.env.METRICS_ES_HOST}`;
+
+  return {
+    node,
+    requestTimeout: 50000
+  };
+};
+
+const esConfig = async (host, metrics = false) => {
+  let config;
+  if (inTestMode()) {
+    config = esTestConfig();
+  } else if (metrics) {
+    config = esMetricsConfig();
+  } else {
+    config = await esProdConfig(host);
+  }
+
+  return config;
+};
+
+class BaseSearch {
+  static async es(host, metrics) {
+    return new elasticsearch.Client(await esConfig(host, metrics));
+  }
+
+  constructor(event, type = null, index, metrics = false) {
     let params = {};
     const logLimit = 10;
 
     this.type = type;
     this.client = null;
+    this.metrics = metrics;
 
     // this will allow us to receive payload
     // from GET and POST requests
@@ -148,7 +176,7 @@ class BaseSearch {
 
     return {
       index: this.index,
-      body: Object.assign({}, aggrs, queries(this.params)),
+      body: { ...aggrs, ...queries(this.params) },
       type: this.type,
       size: 0
     };
@@ -163,41 +191,36 @@ class BaseSearch {
   }
 
   async get(id) {
-    try {
-      const body = {
-        query: {
-          term: {
-            _id: id
-          }
+    const body = {
+      query: {
+        term: {
+          _id: id
         }
-      };
-
-      logDetails.granuleId = id;
-
-      if (!this.client) {
-        this.client = await this.constructor.es();
       }
+    };
 
-      const result = await this.client.search({
-        index: this.index,
-        type: this.type,
-        body: body
-      }).then((response) => response.body);
+    logDetails.granuleId = id;
 
-      if (result.hits.total > 1) {
-        return { detail: 'More than one record was found!' };
-      }
-      if (result.hits.total === 0) {
-        return { detail: 'Record not found' };
-      }
-
-      const resp = result.hits.hits[0]._source;
-      resp._id = result.hits.hits[0]._id;
-      return resp;
-    } catch (e) {
-      //log.error(e, logDetails);
-      throw e;
+    if (!this.client) {
+      this.client = await this.constructor.es();
     }
+
+    const result = await this.client.search({
+      index: this.index,
+      type: this.type,
+      body: body
+    }).then((response) => response.body);
+
+    if (result.hits.total > 1) {
+      return { detail: 'More than one record was found!' };
+    }
+    if (result.hits.total === 0) {
+      return { detail: 'Record not found' };
+    }
+
+    const resp = result.hits.hits[0]._source;
+    resp._id = result.hits.hits[0]._id;
+    return resp;
   }
 
   async granulesStats(key, value) {
@@ -247,7 +270,7 @@ class BaseSearch {
     const newObj = {
       averageDuration: item.averageDuration.value,
       granules: item.granulesCount.value,
-      granulesStatus: Object.assign({}, status)
+      granulesStatus: { ...status }
     };
 
     item.statusCount.buckets.forEach((b) => {
@@ -276,7 +299,7 @@ class BaseSearch {
     try {
       // search ES with the generated parameters
       if (!this.client) {
-        this.client = await this.constructor.es();
+        this.client = await this.constructor.es(null, this.metrics);
       }
       const result = await this.client.search(searchParams);
 

@@ -193,26 +193,45 @@ function fakeExecutionFactory(status = 'completed', type = 'fakeWorkflow') {
 }
 
 /**
+ * creates fake async operation records
+ *
+ * @param {Object} params - overrides
+ * @returns {Object} fake async operation object
+ */
+function fakeAsyncOperationFactory(params = {}) {
+  const asyncOperation = {
+    taskArn: randomId('arn'),
+    id: randomId('id'),
+    description: randomId('description'),
+    operationType: 'ES Index',
+    status: 'SUCCEEDED',
+    createdAt: Date.now() - 180.5 * 1000,
+    updatedAt: Date.now(),
+    output: randomId('output')
+  };
+
+  return { ...asyncOperation, ...params };
+}
+
+/**
  * creates fake collection records
  *
  * @param {Object} options - properties to set on the collection
  * @returns {Object} fake collection object
  */
 function fakeCollectionFactory(options = {}) {
-  return Object.assign(
-    {
-      name: randomId('collectionName'),
-      dataType: randomId('dataType'),
-      version: '0.0.0',
-      provider_path: '',
-      duplicateHandling: 'replace',
-      granuleId: '^MOD09GQ\\.A[\\d]{7}\\.[\\S]{6}\\.006\\.[\\d]{13}$',
-      granuleIdExtraction: '(MOD09GQ\\.(.*))\\.hdf',
-      sampleFileName: 'MOD09GQ.A2017025.h21v00.006.2017034065104.hdf',
-      files: []
-    },
-    options
-  );
+  return {
+    name: randomId('collectionName'),
+    dataType: randomId('dataType'),
+    version: '0.0.0',
+    provider_path: '',
+    duplicateHandling: 'replace',
+    granuleId: '^MOD09GQ\\.A[\\d]{7}\\.[\\S]{6}\\.006\\.[\\d]{13}$',
+    granuleIdExtraction: '(MOD09GQ\\.(.*))\\.hdf',
+    sampleFileName: 'MOD09GQ.A2017025.h21v00.006.2017034065104.hdf',
+    files: [],
+    ...options
+  };
 }
 
 /**
@@ -222,16 +241,14 @@ function fakeCollectionFactory(options = {}) {
  * @returns {Object} fake provider object
  */
 function fakeProviderFactory(options = {}) {
-  return Object.assign(
-    {
-      id: randomId('id'),
-      globalConnectionLimit: 1,
-      protocol: 'http',
-      host: randomId('host'),
-      port: 80
-    },
-    options
-  );
+  return {
+    id: randomId('id'),
+    globalConnectionLimit: 1,
+    protocol: 'http',
+    host: randomId('host'),
+    port: 80,
+    ...options
+  };
 }
 
 function fakeAccessTokenFactory(params = {}) {
@@ -334,6 +351,7 @@ module.exports = {
   fakeCollectionFactory,
   fakeExecutionFactory,
   fakeExecutionFactoryV2,
+  fakeAsyncOperationFactory,
   fakeRuleFactory,
   fakeRuleFactoryV2,
   fakeFileFactory,

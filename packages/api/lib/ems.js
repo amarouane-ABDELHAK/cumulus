@@ -8,11 +8,12 @@ const {
   listS3ObjectsV2,
   parseS3Uri,
   s3CopyObject,
-  buildS3Uri
+  buildS3Uri,
+  getTextObject
 } = require('@cumulus/aws-client/S3');
 const { constructCollectionId } = require('@cumulus/common/collection-config-store');
 const log = require('@cumulus/common/log');
-const { Sftp } = require('@cumulus/common/sftp');
+const SftpClient = require('@cumulus/sftp-client');
 const { Collection } = require('../models');
 
 /**
@@ -101,6 +102,24 @@ async function getExpiredS3Objects(bucket, prefix, retentionInDays) {
     .map((s3Object) => ({ Bucket: bucket, Key: s3Object.Key }));
 }
 
+async function retrievePrivateKey() {
+  const privateKeyFile = process.env.ems_privateKey || 'ems-private.pem';
+
+  let privateKey;
+  try {
+    privateKey = await getTextObject(process.env.system_bucket, `${process.env.stackName}/crypto/${privateKeyFile}`);
+  } catch (e) {
+    if (e.code === 'NoSuchKey') {
+      throw new Error(
+        `${privateKeyFile} does not exist in S3 crypto directory: s3://${process.env.system_bucket}/${process.env.stackName}/crypto/${privateKeyFile}`
+      );
+    }
+    throw e;
+  }
+
+  return privateKey;
+}
+
 /**
  * submit reports to ems
  *
@@ -108,21 +127,22 @@ async function getExpiredS3Objects(bucket, prefix, retentionInDays) {
  * @returns {Array<Object>} - list of report type and its s3 file path {reportType, file}
  */
 async function submitReports(reports) {
-  const emsConfig = {
-    username: process.env.ems_username,
-    host: process.env.ems_host,
-    port: process.env.ems_port,
-    privateKey: process.env.ems_privateKey || 'ems-private.pem',
-    submitReport: process.env.ems_submitReport === 'true' || false
-  };
-
-  if (!emsConfig.submitReport) {
+  if (process.env.ems_submitReport !== 'true') {
     log.debug('EMS reports are not configured to be sent');
     return reports;
   }
 
+  const privateKey = await retrievePrivateKey();
+
+  const sshConfig = {
+    username: process.env.ems_username,
+    host: process.env.ems_host,
+    port: process.env.ems_port,
+    privateKey
+  };
+
   const reportsSent = [];
-  const sftpClient = new Sftp(emsConfig);
+  const sftpClient = new SftpClient(sshConfig);
 
   // submit files one by one using the same connection
   for (let i = 0; i < reports.length; i += 1) {
