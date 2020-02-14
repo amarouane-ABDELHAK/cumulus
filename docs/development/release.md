@@ -110,8 +110,13 @@ If you created a new release plan in step one, you will need to create a new bam
 * **Do Immediately** On the `Branch Details` page, enable `Change trigger`.  Set the `Trigger type` to manual, this will prevent commits to the branch from triggering the build plan.
 You should have been redirected to the `Branch Details` tab after creating the plan. If not, navigate to the branch from the list where you clicked `Create Plan Branch` in the previous step.
 
-* Go to the `Variables` tab and set GIT_PR, USE_TERRAFORM_ZIPS, SKIP_AUDIT and PUBLISH_FLAG to true. Ensure that you are on your branch plan and not the `master` plan: You should not see a large list of configured variables, but instead a dropdown allowing you to select variables to override, and the tab title will be `Branch Variables`.
-Set a DEPLOYMENT variable appropriate for the release (defaults to last committer). This should be `cumulus-from-npm-tf` *except* in special cases such as incompatible backport branches.
+* Go to the `Variables` tab. Ensure that you are on your branch plan and not the `master` plan: You should not see a large list of configured variables, but instead a dropdown allowing you to select variables to override, and the tab title will be `Branch Variables`. Set a DEPLOYMENT variable appropriate for the release (defaults to last committer). This should be `cumulus-from-npm-tf` *except* in special cases such as incompatible backport branches. Then set:
+
+* `GIT_PR`: `true`,
+* `USE_TERRAFORM_ZIPS`: `true`,
+* `SKIP_AUDIT`: `true`,
+* `PUBLISH_FLAG`: `true`, and
+* `USE_CACHED_BOOTSTRAP`: `false`
 
 * Enable the branch from the `Branch Details` page.
 
