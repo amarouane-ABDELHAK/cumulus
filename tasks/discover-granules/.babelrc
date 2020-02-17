@@ -2,7 +2,8 @@
   "comments": false,
   "sourceMaps": "both",
   "presets": [
-    ["env", {
+    ["@babel/preset-env", {
+      "modules": "commonjs",
       "targets": {
         "node": "10.16.3"
       }
