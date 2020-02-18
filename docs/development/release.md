@@ -12,7 +12,7 @@ Read more about the semantic versioning [here](https://docs.npmjs.com/getting-st
 
 #### From Master
 
-If creating a new minor version release from master, create a branch titled `release-MAJOR.MINOR.x` (e.g. release-1.14.x) as a minor version base branch from master to allow us to easily backport patches to that version. Push the `release-MAJOR.MINOR.x` branch to GitHub. (Commits should be even with master at this point.)
+If creating a new minor version release from master, create a branch titled `release-MAJOR.MINOR.x` (e.g. release-1.14.x) as a minor version base branch from master to allow us to easily backport patches to that version. Push the `release-MAJOR.MINOR.x` branch to GitHub if it was created locally. (Commits should be even with master at this point.)
 
 If creating a patch release, you can check out the existing base branch.
 Then create the release branch (e.g. release-1.14.0) from the minor version base branch.
