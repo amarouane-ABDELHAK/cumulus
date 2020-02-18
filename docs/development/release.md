@@ -141,7 +141,7 @@ Just make sure to verify the appropriate .zip files are present on Github after 
 Finally, you need to reproduce the version update changes back to master.
 
 If this is the latest version, you can simply create a PR to merge the minor version base branch back to master.
-**Note:** Do not squash this merge. Doing so will make the "compare" view from step 4 show an unpredictable diff.
+**Note:** Do not squash this merge. Doing so will make the "compare" view from step 4 show an incorrect diff, because the tag is linked to a specific commit on the base branch.
 
 If this is a backport, you will need to create a PR that ports the changelog updates back to master.
 It is important in this changelog note to call it out as a backport.
