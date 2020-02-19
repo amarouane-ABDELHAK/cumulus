@@ -106,24 +106,6 @@ class Pdr extends Manager {
   }
 
   /**
-   * Create a new PDR record from incoming SNS messages
-   *
-   * @param {Object} payload - SNS message containing the output of a Cumulus Step Function
-   * @returns {Promise<Object>} a PDR record
-   */
-  createPdrFromSns(payload) {
-    deprecate('@cumulus/api/models/Pdr.createPdrFromSns', 'v1.18.0');
-    const pdrObj = get(payload, 'payload.pdr', get(payload, 'meta.pdr'));
-    const pdrName = get(pdrObj, 'name');
-
-    if (!pdrName) return Promise.resolve();
-
-    const pdrRecord = this.generatePdrRecord(payload);
-
-    return this.create(pdrRecord);
-  }
-
-  /**
    * Try to update a PDR record from a cloudwatch event.
    * If the record already exists, only update if the execution is different (re-run case).
    *
