@@ -1,6 +1,6 @@
 resource "aws_iam_role" "cw_sf_event_to_db_records_lambda" {
   name                 = "${var.prefix}_cw_sf_event_to_db_records_lambda_role"
-  assume_role_policy   = data.aws_iam_policy_document.assume_lambda_role.json
+  assume_role_policy   = data.aws_iam_policy_document.lambda_assume_role_policy.json
   permissions_boundary = var.permissions_boundary_arn
   tags                 = local.default_tags
 }
@@ -10,7 +10,8 @@ data "aws_iam_policy_document" "cw_sf_event_to_db_records_lambda" {
     actions   = ["dynamodb:UpdateItem"]
     resources = [
       var.dynamo_tables.executions.arn,
-      var.dynamo_tables.granules.arn
+      var.dynamo_tables.granules.arn,
+      var.dynamo_tables.pdrs.arn
     ]
   }
 
@@ -92,6 +93,7 @@ resource "aws_lambda_function" "cw_sf_event_to_db_records" {
     variables = {
       ExecutionsTable = var.dynamo_tables.executions.name
       GranulesTable   = var.dynamo_tables.granules.name
+      PdrsTable       = var.dynamo_tables.pdrs.name
     }
   }
 

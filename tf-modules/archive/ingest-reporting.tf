@@ -245,11 +245,8 @@ resource "aws_iam_role" "publish_pdrs_lambda_role" {
 
 data "aws_iam_policy_document" "publish_pdrs_policy_document" {
   statement {
-    actions = [
-      "dynamoDb:getItem",
-      "dynamoDb:putItem"
-    ]
-    resources = [var.dynamo_tables.pdrs.arn]
+    actions   = ["sns:Publish"]
+    resources = [aws_sns_topic.report_pdrs_topic.arn]
   }
   statement {
     actions = [
@@ -275,6 +272,15 @@ data "aws_iam_policy_document" "publish_pdrs_policy_document" {
     resources = [
       aws_sqs_queue.publish_pdrs_dead_letter_queue.arn
     ]
+  }
+  statement {
+    actions = [
+      "dynamodb:GetRecords",
+      "dynamodb:GetShardIterator",
+      "dynamodb:DescribeStream",
+      "dynamodb:ListStreams"
+    ]
+    resources = ["${var.dynamo_tables.pdrs.arn}/stream/*"]
   }
 }
 
