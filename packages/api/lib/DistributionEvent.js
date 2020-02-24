@@ -119,7 +119,7 @@ class DistributionEvent {
    * @returns {string} a username
    */
   get username() {
-    const match = /"[\s\w]+userid=([a-z]+)\"/.exec(this.rawLine);
+    const match = /"[\s\w]+userid=([\w]+)\"/.exec(this.rawLine);
     return match ? match[1] : '-';
   }
 
