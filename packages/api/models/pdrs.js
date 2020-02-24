@@ -111,7 +111,7 @@ class Pdr extends Manager {
    *
    * @param {Object} cumulusMessage - cumulus message object
    */
-  async updateFromCloudwatchEvent(cumulusMessage) {
+  async storePdrsFromCumulusMessage(cumulusMessage) {
     const pdrRecord = this.generatePdrRecord(cumulusMessage);
     if (!pdrRecord) return null;
     const updateParams = await this.generatePdrUpdateParamsFromRecord(pdrRecord);

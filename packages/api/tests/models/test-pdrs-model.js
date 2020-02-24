@@ -204,15 +204,15 @@ test('generatePdrRecord() sets PDR properties when included', async (t) => {
   t.is(record.PANmessage, PANmessage);
 });
 
-test('updateFromCloudWatchEvent returns null if there is no pdr on the message', async (t) => {
+test('storePdrsFromCumulusMessage returns null if there is no pdr on the message', async (t) => {
   const msg = createPdrMessage({});
 
-  const output = await pdrsModel.updateFromCloudwatchEvent(msg);
+  const output = await pdrsModel.storePdrsFromCumulusMessage(msg);
   t.is(output, null);
 });
 
 test(
-  'updateFromCloudwatchEvent updates the database if status is running and the execution is different',
+  'storePdrsFromCumulusMessage updates the database if status is running and the execution is different',
   async (t) => {
     const pdrName = randomId('pdr');
     const stateMachine = randomId('parsePdr');
@@ -226,7 +226,7 @@ test(
       name: pdrName
     };
 
-    await pdrsModel.updateFromCloudwatchEvent(initialMsg);
+    await pdrsModel.storePdrsFromCumulusMessage(initialMsg);
     t.true(
       (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
     );
@@ -242,7 +242,7 @@ test(
       name: pdrName
     };
 
-    await pdrsModel.updateFromCloudwatchEvent(newMsg);
+    await pdrsModel.storePdrsFromCumulusMessage(newMsg);
 
     const record = await pdrsModel.get({ pdrName });
     t.is(record.status, 'running');
@@ -251,7 +251,7 @@ test(
 );
 
 test(
-  'updateFromCloudwatchEvent does not update same-execution if progress is less than current',
+  'storePdrsFromCumulusMessage does not update same-execution if progress is less than current',
   async (t) => {
     const pdrName = randomId('pdr');
     const stateMachine = randomId('parsePdr');
@@ -268,7 +268,7 @@ test(
       name: pdrName
     };
 
-    await pdrsModel.updateFromCloudwatchEvent(initialMsg);
+    await pdrsModel.storePdrsFromCumulusMessage(initialMsg);
     t.true(
       (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
     );
@@ -284,7 +284,7 @@ test(
       name: pdrName
     };
 
-    await pdrsModel.updateFromCloudwatchEvent(newMsg);
+    await pdrsModel.storePdrsFromCumulusMessage(newMsg);
 
     const record = await pdrsModel.get({ pdrName });
     t.is(record.status, 'completed');
@@ -292,7 +292,7 @@ test(
   }
 );
 
-test('updateFromCloudwatchEvent overwrites a same-execution running status if progress was made',
+test('storePdrsFromCumulusMessage overwrites a same-execution running status if progress was made',
   async (t) => {
     const pdrName = randomId('pdr');
     const stateMachine = randomId('parsePdr');
@@ -309,7 +309,7 @@ test('updateFromCloudwatchEvent overwrites a same-execution running status if pr
       name: pdrName
     };
 
-    await pdrsModel.updateFromCloudwatchEvent(initialMsg);
+    await pdrsModel.storePdrsFromCumulusMessage(initialMsg);
     t.true(
       (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
     );
@@ -326,7 +326,7 @@ test('updateFromCloudwatchEvent overwrites a same-execution running status if pr
       name: pdrName
     };
 
-    await pdrsModel.updateFromCloudwatchEvent(newMsg);
+    await pdrsModel.storePdrsFromCumulusMessage(newMsg);
 
     const record = await pdrsModel.get({ pdrName });
     t.is(record.stats.processing, 1);
