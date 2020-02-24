@@ -1,5 +1,6 @@
 'use strict';
 
+const get = require('lodash.get');
 const log = require('@cumulus/common/log');
 const { getMessageExecutionArn } = require('@cumulus/common/message');
 const { Execution, Granule, Pdr } = require('../models');
@@ -37,17 +38,23 @@ const saveGranulesToDb = async (cumulusMessage) => {
 };
 
 const handler = async (event) => {
-  const cumulusMessage = await getCumulusMessageFromExecutionEvent(event);
+  const sqsMessages = event.Records;
 
-  await Promise.all([
-    saveExecutionToDb(cumulusMessage),
-    saveGranulesToDb(cumulusMessage),
-    savePdrToDb(cumulusMessage)
-  ]);
+  return Promise.all(sqsMessages.map(async (message) => {
+    const executionEvent = JSON.parse(get(message, 'Body', get(message, 'body', '{}')));
+    const cumulusMessage = await getCumulusMessageFromExecutionEvent(executionEvent);
+
+    await Promise.all([
+      saveExecutionToDb(cumulusMessage),
+      saveGranulesToDb(cumulusMessage),
+      savePdrToDb(cumulusMessage)
+    ]);
+  }));
 };
 
 module.exports = {
   handler,
   saveExecutionToDb,
-  saveGranulesToDb
+  saveGranulesToDb,
+  savePdrToDb
 };
