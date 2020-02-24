@@ -9,7 +9,6 @@ const {
   listS3ObjectsV2
 } = require('@cumulus/aws-client/S3');
 const awsServices = require('@cumulus/aws-client/services');
-const { URL } = require('url');
 const log = require('@cumulus/common/log');
 const {
   buildStartEndTimes,
@@ -20,7 +19,7 @@ const {
   submitReports
 } = require('../lib/ems');
 const { deconstructCollectionId } = require('../lib/utils');
-const { FileClass } = require('../models');
+const FileClass = require('../models/files');
 
 /**
  * This class takes an S3 Server Log line and parses it for EMS Distribution Logs
@@ -35,10 +34,10 @@ const { FileClass } = require('../models');
  * [01/June/1981:01:02:13 +0000] 192.0.2.3 arn:aws:iam::000000000000:user/joe
  * 1CB21F5399FF76C5 REST.GET.OBJECT my-dist-bucket/pdrs/
  * MYD13Q1.A2017297.h19v10.006.2017313221229.hdf.PDR
- * "GET /my-dist-bucket/pdrs/MYD13Q1.A2017297.h19v10.006.2017313221229.hdf.PDR?AWSAccessKeyId=
- * AKIAIOSFODNN7EXAMPLE&Expires=1525892130&Signature=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX&x-
- * EarthdataLoginUsername=amalkin HTTP/1.1" 200 - 807 100 22 22 "-" "curl/7.59.0" -
- *
+ * "GET /my-dist-bucket/pdrs/MYD13Q1.A2017297.h19v10.006.2017313221229.hdf.PDR HTTP/1.1" 200 -
+ * 807 100 22 22 "-" "RAIN Egress App for userid=amalkin" -
+ * +AzZ/OMoP7AqT6ZHEOdLoFbmTn+TKKh0UBxKQkpJthfh2f4GE4GwT3VQHxuFhC42O1gCWWYFsiw= SigV4
+ * ECDHE-RSA-AES128-GCM-SHA256 AuthHeader s3.amazonaws.com TLSv1.2
  */
 class DistributionEvent {
   /**
@@ -50,7 +49,7 @@ class DistributionEvent {
    */
   static isDistributionEvent(s3ServerLogLine) {
     return s3ServerLogLine.includes('REST.GET.OBJECT')
-      && s3ServerLogLine.includes('x-EarthdataLoginUsername');
+      && s3ServerLogLine.includes('userid');
   }
 
   /**
@@ -138,9 +137,8 @@ class DistributionEvent {
    * @returns {string} a username
    */
   get username() {
-    const requestUri = this.rawLine.split('"')[1].split(' ')[1];
-    const parsedUri = (new URL(requestUri, 'http://localhost'));
-    return parsedUri.searchParams.get('x-EarthdataLoginUsername') || '-';
+    const match = /"[\s\w]+userid=([a-z]+)\"/.exec(this.rawLine);
+    return match ? match[1] : '-';
   }
 
   /**
