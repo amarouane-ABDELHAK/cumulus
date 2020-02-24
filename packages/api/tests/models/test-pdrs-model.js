@@ -251,7 +251,7 @@ test(
 );
 
 test(
-  'updateFromCloudwatchEvent does not update if execution is the same and status is running',
+  'updateFromCloudwatchEvent does not update same-execution if progress is less than current',
   async (t) => {
     const pdrName = randomId('pdr');
     const stateMachine = randomId('parsePdr');
@@ -260,6 +260,7 @@ test(
     const initialMsg = createPdrMessage({
       execution,
       stateMachine,
+      numCompletedExecutions: 3,
       status: 'completed'
     });
 
@@ -275,6 +276,7 @@ test(
     const newMsg = createPdrMessage({
       execution,
       stateMachine,
+      numRunningExecutions: 3,
       status: 'running'
     });
 
@@ -286,91 +288,47 @@ test(
 
     const record = await pdrsModel.get({ pdrName });
     t.is(record.status, 'completed');
+    t.is(record.stats.completed, 3);
   }
 );
 
-test('updateFromCumulusMessage returns null if there is no pdr on the message', async (t) => {
-  const msg = createPdrMessage({});
+test('updateFromCloudwatchEvent overwrites a same-execution running status if progress was made',
+  async (t) => {
+    const pdrName = randomId('pdr');
+    const stateMachine = randomId('parsePdr');
+    const execution = randomId('exec');
 
-  const output = await pdrsModel.updateFromCumulusMessage(msg);
-  t.is(output, null);
-});
+    const initialMsg = createPdrMessage({
+      execution,
+      numRunningExecutions: 5,
+      stateMachine,
+      status: 'running'
+    });
 
-test('updateFromCumulusMessage overwrites a running status', async (t) => {
-  const pdrName = randomId('pdr');
-  const stateMachine = randomId('parsePdr');
-  const execution = randomId('exec');
+    initialMsg.payload.pdr = {
+      name: pdrName
+    };
 
-  const initialMsg = createPdrMessage({
-    execution,
-    numRunningExecutions: 5,
-    stateMachine,
-    status: 'running'
+    await pdrsModel.updateFromCloudwatchEvent(initialMsg);
+    t.true(
+      (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
+    );
+
+    const newMsg = createPdrMessage({
+      execution,
+      numRunningExecutions: 1,
+      numCompletedExecutions: 4,
+      stateMachine,
+      status: 'running'
+    });
+
+    newMsg.payload.pdr = {
+      name: pdrName
+    };
+
+    await pdrsModel.updateFromCloudwatchEvent(newMsg);
+
+    const record = await pdrsModel.get({ pdrName });
+    t.is(record.stats.processing, 1);
+    t.is(record.stats.completed, 4);
   });
-
-  initialMsg.payload.pdr = {
-    name: pdrName
-  };
-
-  await pdrsModel.updateFromCumulusMessage(initialMsg);
-  t.true(
-    (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
-  );
-
-  const newMsg = createPdrMessage({
-    execution,
-    numCompletedExecutions: 5,
-    stateMachine,
-    status: 'running'
-  });
-
-  newMsg.payload.pdr = {
-    name: pdrName
-  };
-
-  await pdrsModel.updateFromCumulusMessage(newMsg);
-
-  const record = await pdrsModel.get({ pdrName });
-  t.is(record.stats.processing, 0);
-  t.is(record.stats.completed, 5);
-});
-
-test('updateFromCumulusMessage overwrites a completed status', async (t) => {
-  const pdrName = randomId('pdr');
-  const stateMachine = randomId('parsePdr');
-  const execution = randomId('exec');
-
-  const initialMsg = createPdrMessage({
-    execution,
-    numCompletedExecutions: 5,
-    stateMachine,
-    status: 'completed'
-  });
-
-  initialMsg.payload.pdr = {
-    name: pdrName
-  };
-
-  await pdrsModel.updateFromCumulusMessage(initialMsg);
-  t.true(
-    (await pdrsModel.get({ pdrName })).execution.includes(initialMsg.cumulus_meta.execution_name)
-  );
-
-  const newMsg = createPdrMessage({
-    execution,
-    numRunningExecutions: 5,
-    stateMachine,
-    status: 'running'
-  });
-
-  newMsg.payload.pdr = {
-    name: pdrName
-  };
-
-  await pdrsModel.updateFromCumulusMessage(newMsg);
-
-  const record = await pdrsModel.get({ pdrName });
-  t.is(record.status, 'running');
-  t.is(record.stats.processing, 5);
-  t.is(record.stats.completed, 0);
-});

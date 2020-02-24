@@ -114,9 +114,9 @@ class Pdr extends Manager {
   async updateFromCloudwatchEvent(cumulusMessage) {
     const pdrRecord = this.generatePdrRecord(cumulusMessage);
     if (!pdrRecord) return null;
-    const updateParams = await this.generatePdrupdateParamsFromRecord(pdrRecord);
+    const updateParams = await this.generatePdrUpdateParamsFromRecord(pdrRecord);
     if (pdrRecord.status === 'running') {
-      updateParams.ConditionExpression = 'execution <> :execution';
+      updateParams.ConditionExpression = 'execution <> :execution OR progress < :progress';
       try {
         return await this.dynamodbDocClient.update(updateParams).promise();
       } catch (err) {
@@ -131,19 +131,7 @@ class Pdr extends Manager {
     return this.dynamodbDocClient.update(updateParams).promise();
   }
 
-  /**
-   * Update a PDR record from a cumulusMessage.
-   *
-   * @param {Object} cumulusMessage - cumulus message
-   */
-  async updateFromCumulusMessage(cumulusMessage) {
-    const pdrRecord = this.generatePdrRecord(cumulusMessage);
-    if (!pdrRecord) return null;
-    const updateParams = await this.generatePdrupdateParamsFromRecord(pdrRecord);
-    return this.dynamodbDocClient.update(updateParams).promise();
-  }
-
-  async generatePdrupdateParamsFromRecord(pdrRecord) {
+  async generatePdrUpdateParamsFromRecord(pdrRecord) {
     const mutableFieldNames = Object.keys(pdrRecord);
     const updateParams = this._buildDocClientUpdateParams({
       item: pdrRecord,
