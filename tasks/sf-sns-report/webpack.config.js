@@ -10,14 +10,14 @@ module.exports = {
     filename: 'index.js',
     path: path.resolve(__dirname, 'dist'),
     devtoolModuleFilenameTemplate: (info) => {
-      const relativePath = path.relative(root, info.absoluteResourcePath)
+      const relativePath = path.relative(root, info.absoluteResourcePath);
       return `webpack://${relativePath}`;
     }
   },
   externals: [
     'aws-sdk',
     'electron',
-    {'formidable': 'url'}
+    { formidable: 'url' }
   ],
   module: {
     rules: [
@@ -29,11 +29,11 @@ module.exports = {
             loader: 'babel-loader',
             options: {
               cacheDirectory: true
-            },
-          },
-        ],
-      },
-    ],
+            }
+          }
+        ]
+      }
+    ]
   },
   devtool: 'inline-source-map',
   target: 'node'
