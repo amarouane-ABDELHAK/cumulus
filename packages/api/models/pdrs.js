@@ -120,9 +120,12 @@ class Pdr extends Manager {
       try {
         return await this.dynamodbDocClient.update(updateParams).promise();
       } catch (err) {
-        const executionArn = getMessageExecutionArn(cumulusMessage);
-        log.info(`Did not process delayed 'running' event for ${executionArn}`);
-        return null;
+        if (err.name && err.name.includes('ConditionalCheckFailedException')) {
+          const executionArn = getMessageExecutionArn(cumulusMessage);
+          log.info(`Did not process delayed 'running' event for ${executionArn}`);
+          return null;
+        }
+        throw err;
       }
     }
     return this.dynamodbDocClient.update(updateParams).promise();

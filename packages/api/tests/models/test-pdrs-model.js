@@ -2,7 +2,6 @@
 
 const test = require('ava');
 
-const { constructCollectionId } = require('@cumulus/common/collection-config-store');
 const { randomId, randomNumber, randomString } = require('@cumulus/common/test-utils');
 
 const { deconstructCollectionId } = require('../../lib/utils');
