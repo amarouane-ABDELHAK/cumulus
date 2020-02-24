@@ -76,8 +76,8 @@ output "queue_pdrs_task" {
   value = module.ingest.queue_pdrs_task
 }
 
-output "sf_sns_report_task" {
-  value = module.ingest.sf_sns_report_task
+output "sf_sqs_report_task" {
+  value = module.ingest.sf_sqs_report_task
 }
 
 output "sync_granule_task" {
@@ -88,8 +88,7 @@ output "sync_granule_task" {
 
 output "workflow_config" {
   value = {
-    cw_sf_event_to_db_records_lambda_function_arn   = module.archive.cw_sf_event_to_db_records_lambda_function_arn
-    publish_reports_lambda_function_arn             = module.archive.publish_reports_lambda_function_arn
+    cw_sf_event_to_db_records_sqs_queue_arn         = module.archive.cw_sf_event_to_db_records_sqs_queue_arn
     sf_semaphore_down_lambda_function_arn           = module.ingest.sf_semaphore_down_lambda_function_arn
     state_machine_role_arn                          = module.ingest.step_role_arn
     sqs_message_remover_lambda_function_arn         = module.ingest.sqs_message_remover_lambda_function_arn

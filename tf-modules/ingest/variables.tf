@@ -88,15 +88,7 @@ variable "prefix" {
   type = string
 }
 
-variable "report_executions_sns_topic_arn" {
-  type = string
-}
-
-variable "report_granules_sns_topic_arn" {
-  type = string
-}
-
-variable "report_pdrs_sns_topic_arn" {
+variable "cw_sf_event_to_db_records_sqs_queue_url" {
   type = string
 }
 

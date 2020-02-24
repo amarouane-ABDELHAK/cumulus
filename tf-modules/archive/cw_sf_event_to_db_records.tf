@@ -59,12 +59,42 @@ data "aws_iam_policy_document" "cw_sf_event_to_db_records_lambda" {
     actions = ["sqs:SendMessage"]
     resources = [aws_sqs_queue.cw_sf_event_to_db_records_dead_letter_queue.arn]
   }
+
+  statement {
+    actions = [
+      "sqs:ReceiveMessage",
+      "sqs:ChangeMessageVisibility",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueUrl",
+      "sqs:GetQueueAttributes"
+    ]
+    resources = [
+      aws_sqs_queue.cw_sf_event_to_db_records_input_queue.arn
+    ]
+  }
 }
 
 resource "aws_iam_role_policy" "cw_sf_event_to_db_records_lambda_role_policy" {
   name   = "${var.prefix}_cw_sf_event_to_db_records_lambda_role_policy"
   role   = aws_iam_role.cw_sf_event_to_db_records_lambda.id
   policy = data.aws_iam_policy_document.cw_sf_event_to_db_records_lambda.json
+}
+
+resource "aws_sqs_queue" "cw_sf_event_to_db_records_input_queue" {
+  name = "${var.prefix}-cwSfEventToDbRecordsInputQueue"
+  receive_wait_time_seconds  = 20
+  visibility_timeout_seconds = (aws_lambda_function.cw_sf_event_to_db_records.timeout * 6)
+  redrive_policy             = jsonencode(
+    {
+      deadLetterTargetArn = aws_sqs_queue.cw_sf_event_to_db_records_dead_letter_queue.arn
+      maxReceiveCount     = 10
+  })
+  tags                       = var.tags
+}
+
+resource "aws_lambda_event_source_mapping" "start_sf_mapping" {
+  event_source_arn = aws_sqs_queue.cw_sf_event_to_db_records_input_queue.arn
+  function_name    = aws_lambda_function.cw_sf_event_to_db_records.arn
 }
 
 resource "aws_sqs_queue" "cw_sf_event_to_db_records_dead_letter_queue" {

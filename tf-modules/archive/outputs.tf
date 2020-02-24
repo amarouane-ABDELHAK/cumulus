@@ -6,8 +6,12 @@ output "api_redirect_uri" {
   value = local.api_redirect_uri
 }
 
-output "cw_sf_event_to_db_records_lambda_function_arn" {
-  value = aws_lambda_function.cw_sf_event_to_db_records.arn
+output "cw_sf_event_to_db_records_sqs_queue_url" {
+  value = aws_sqs_queue.cw_sf_event_to_db_records_input_queue.id
+}
+
+output "cw_sf_event_to_db_records_sqs_queue_arn" {
+  value = aws_sqs_queue.cw_sf_event_to_db_records_input_queue.arn
 }
 
 output "log2elasticsearch_lambda_function_arn" {
