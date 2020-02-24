@@ -17,7 +17,7 @@ const {
   saveGranulesToDb,
   savePdrToDb
 } = require('../../lambdas/cw-sf-event-to-db-records');
-const { fakeFileFactory, fakeGranuleFactoryV2, fakePdrFactory } = require('../../lib/testUtils');
+const { fakeFileFactory, fakeGranuleFactoryV2 } = require('../../lib/testUtils');
 
 const loadFixture = (filename) =>
   fs.readJson(
@@ -196,13 +196,13 @@ test.serial('savePdrsToDb() saves a PDR record', async (t) => {
     name: randomString(),
     PANSent: false,
     PANmessage: 'test'
-  }
+  };
   cumulusMessage.payload = {
     pdr,
     completed: new Array(4).map(randomString),
     failed: new Array(2).map(randomString),
     running: new Array(6).map(randomString)
-  }
+  };
   await savePdrToDb(cumulusMessage);
 
   const collectionId = (() => {
@@ -228,13 +228,18 @@ test.serial('savePdrsToDb() saves a PDR record', async (t) => {
     },
     createdAt: cumulusMessage.cumulus_meta.workflow_start_time,
     duration: fetchedPdr.duration,
-    timestamp: fetchedPdr.timestamp,
+    timestamp: fetchedPdr.timestamp
   };
   t.deepEqual(fetchedPdr, expectedPdr);
 });
 
 test('The cw-sf-event-to-db-records Lambda function creates execution, granule and pdr records', async (t) => {
-  const { cumulusMessage, executionModel, granuleModel, pdrModel } = t.context;
+  const {
+    cumulusMessage,
+    executionModel,
+    granuleModel,
+    pdrModel
+  } = t.context;
 
   const fixture = await loadFixture('execution-running-event.json');
 
@@ -265,7 +270,7 @@ test('The cw-sf-event-to-db-records Lambda function creates execution, granule a
 
   const sqsEvent = {
     Records: [{
-      eventSource: "aws:sqs",
+      eventSource: 'aws:sqs',
       body: JSON.stringify(fixture)
     }]
   };

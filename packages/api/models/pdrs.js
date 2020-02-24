@@ -5,7 +5,6 @@ const get = require('lodash.get');
 const StepFunctions = require('@cumulus/aws-client/StepFunctions');
 const log = require('@cumulus/common/log');
 const { getCollectionIdFromMessage, getMessageExecutionArn } = require('@cumulus/common/message');
-const { deprecate } = require('@cumulus/common/util');
 const pvl = require('@cumulus/pvl');
 
 const Manager = require('./base');
