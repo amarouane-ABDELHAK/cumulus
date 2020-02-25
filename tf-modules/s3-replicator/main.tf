@@ -15,7 +15,7 @@ data "archive_file" "replicator_package" {
 }
 
 resource "aws_security_group" "s3_replicator_lambda" {
-  count  = local.security_group_ids_set ? 0 : 1
+  count  = local.security_group_ids_set ? 0 : 1 &&  var.include_s3_replicator ? 1 : 0
   vpc_id = var.vpc_id
   egress {
     from_port   = 0
