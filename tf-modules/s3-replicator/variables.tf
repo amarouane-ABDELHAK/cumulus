@@ -43,3 +43,7 @@ variable "source_bucket" {
 variable "source_prefix" {
   type = string
 }
+variable "include_s3_replicator" {
+  type = bool
+  default = true
+}

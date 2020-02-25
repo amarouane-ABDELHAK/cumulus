@@ -27,6 +27,7 @@ resource "aws_security_group" "s3_replicator_lambda" {
 }
 
 resource "aws_lambda_function" "s3_replicator" {
+  count = var.include_s3_replicator ? 1 : 0
   filename      = data.archive_file.replicator_package.output_path
   function_name = "${var.prefix}-s3-replicator"
   role          = "${aws_iam_role.replicator_lambda_role.arn}"
@@ -52,12 +53,14 @@ resource "aws_lambda_function" "s3_replicator" {
 }
 
 resource "aws_lambda_permission" "s3_replicator_permission" {
+  count = var.include_s3_replicator ? 1 : 0
   action        = "lambda:InvokeFunction"
   function_name = "${aws_lambda_function.s3_replicator.arn}"
   principal     = "s3.amazonaws.com"
 }
 
 resource "aws_s3_bucket_notification" "s3_replicator_trigger" {
+  count = var.include_s3_replicator ? 1 : 0
   bucket = "${var.source_bucket}"
 
   lambda_function {
